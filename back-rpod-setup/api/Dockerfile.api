@@ -1,23 +1,26 @@
-# ─────────────────────────────
+# ─────────────────────────────────────────────
 # File: back-rpod-setup/api/Dockerfile.api
-# ─────────────────────────────
+# Build context: run from repo root
+#   podman build -t localhost/rpod-api -f back-rpod-setup/api/Dockerfile.api .
+# ─────────────────────────────────────────────
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install curl for internal healthchecks or debugging
+# ── System deps (for curl + debugging)
 RUN apt-get update && \
     apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install deps
-COPY requirements.txt .
+# ── Python deps
+COPY back-rpod-setup/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy API source (Docker context = back-rpod-setup/api)
-COPY . /app/
+# ── API source
+COPY back-rpod-setup/api /app/
 
-# Environment defaults
+# ── Default environment
 ENV PYTHONPATH=/app
 ENV PODMAN_URL=http+unix://%2Frun%2Fpodman%2Fpodman.sock
 ENV USERS_FILE=/app/config/users.yaml
@@ -25,6 +28,8 @@ ENV MOCK_PATH=/home/arcinstitute/mockdir
 ENV IMAGE_NAME=rstudio-tier
 ENV CONTAINER_ENGINE=podman
 
-EXPOSE 6124
+# ── Optional: mount config directory from host
+# e.g. -v ~/rstudio-tier-setup/config:/app/config:ro
 
+EXPOSE 6124
 CMD ["uvicorn", "rpod_api:app", "--host", "0.0.0.0", "--port", "6124", "--log-level", "info"]

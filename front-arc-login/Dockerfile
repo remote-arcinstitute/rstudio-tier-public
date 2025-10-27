@@ -1,9 +1,10 @@
+# Run this from repo root
 FROM python:3.11-slim
-
 WORKDIR /app
-COPY app.py /app/
-COPY static /app/static
-COPY config /app/config
+
+COPY front-arc-login/app.py /app/
+COPY front-arc-login/static /app/static
+COPY config /app/config 
 
 RUN pip install fastapi uvicorn requests python-multipart pyyaml
 

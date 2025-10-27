@@ -1,25 +1,38 @@
-# ─────────────────────────────
-# File: back-rpod-setup/runner/Dockerfile.runner
-# ─────────────────────────────
+
 FROM docker.io/rocker/rstudio:latest
 LABEL maintainer="arcinstitute <ops@arcinstitute.org>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CENTRAL_LIB=/usr/local/lib/R/site-library
-ENV USER_FILE=/etc/rstudio/users.txt
 ENV TIER_FILE=/etc/rstudio/tier_limits.conf
 ENV STATE_DIR=/var/lib/rstudio
 ENV OUT_CRED=$STATE_DIR/generated_credentials.txt
+ENV USER_FILE=/etc/rstudio/users.txt
+ENV CONFIG_DIR=/etc/rstudio/config          
+ENV USERS_FILE=$CONFIG_DIR/users.yaml        
 
+# ── Install tini and basic build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    jq libpq-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
+    tini jq libpq-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
     libgit2-dev make g++ pkg-config ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY init-tier.sh /usr/local/bin/init-tier.sh
+# ── Ensure R library + state dirs exist
+RUN mkdir -p /etc/rstudio "$CENTRAL_LIB" "$STATE_DIR" "$CONFIG_DIR" && \
+    chmod 777 "$STATE_DIR" && \
+    chown -R root:root "$CENTRAL_LIB" && chmod -R 0755 "$CENTRAL_LIB"
+
+# ── Copy tier init logic
+COPY back-rpod-setup/runner/init-tier.sh /usr/local/bin/init-tier.sh
 RUN chmod +x /usr/local/bin/init-tier.sh
 
-COPY tier_limits.conf /etc/rstudio/tier_limits.conf
+# ── (Optional) Copy configuration templates into /etc/rstudio/config
+#    These can later be overridden at runtime with a bind mount:
+#    e.g. -v ~/rstudio-tier-setup/config:/etc/rstudio/config:ro
+COPY config /etc/rstudio/config
+
+# ── Use tini as PID 1 for clean process handling
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 EXPOSE 8787
 CMD ["/usr/local/bin/init-tier.sh"]

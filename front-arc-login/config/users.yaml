@@ -1,6 +1,21 @@
-julianbs:
-  tier: tier2
-hanif:
-  tier: tier1
-nilakshi:
-  tier: tier3
+users:
+  julianbs:
+    password: julianpw
+    tier: tier2
+    groups: [ARC1, ARC2]
+    home: /home/julianbs
+    symlink: /OneDrive/ARC2.CVDInstitute
+
+  hanif:
+    password: hanifpw
+    tier: tier1
+    groups: [ARC1]
+    home: /home/hanif
+    symlink: /OneDrive/ARC1.HealthSystemInstitute
+
+  nilakshi:
+    password: nilakshipw
+    tier: tier3
+    groups: [ARC3]
+    home: /home/nilakshi
+    symlink: /OneDrive/ARC3.ChildHealthInstitute

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────
-# File: 01_build/init-tier.sh
+# File: back-rpod-setup/runner/init-tier.sh
 # ─────────────────────────────────────────────
 set -euo pipefail
 
@@ -11,11 +11,13 @@ TIER_FILE="${TIER_FILE:-/etc/rstudio/tier_limits.conf}"
 STATE_DIR="${STATE_DIR:-/var/lib/rstudio}"
 OUT_CRED="${OUT_CRED:-$STATE_DIR/generated_credentials.txt}"
 CENTRAL_LIB="${CENTRAL_LIB:-/usr/local/lib/R/site-library}"
-MOCK_ROOT="/mockdir"
+MOCK_ROOT="${MOCK_ROOT:-/mockdir}"
 
 mkdir -p "$STATE_DIR"
 touch "$OUT_CRED"
 
+# Force RStudio Server to listen on all interfaces
+echo "www-address=0.0.0.0" > /etc/rstudio/rserver.conf
 # ─────────────────────────────────────────────
 # Load Tier Limits
 # ─────────────────────────────────────────────
@@ -40,12 +42,12 @@ if [[ -s "$USER_FILE" ]]; then
   log "Loading users from $USER_FILE"
   while IFS=',' read -r username password tier groups home symlink; do
     [[ "$username" =~ ^#|^$ ]] && continue
-    log "Creating user: $username (tier=$tier groups=$groups)"
+    log "Creating user: $username (tier=$tier, groups=$groups)"
     log "Tier limits: CPU=${CPU_LIMIT[$tier]}m MEM=${MEM_LIMIT[$tier]}Mi"
 
     mkdir -p "$home"
 
-    # Create groups
+    # Create user groups if missing
     IFS='|' read -ra grp_list <<< "$groups"
     for g in "${grp_list[@]}"; do
       getent group "$g" >/dev/null || groupadd -r "$g"
@@ -64,7 +66,7 @@ if [[ -s "$USER_FILE" ]]; then
     # Link shared R library
     ln -sfn "$CENTRAL_LIB" "$home/R"
 
-    # Resolve symlink target (to Project Center)
+    # Link to mock Project Center if available
     if [[ -d "$MOCK_ROOT/Project Center" ]]; then
       target="${MOCK_ROOT}/Project Center/${g}.HealthSystemInstitute"
       if [[ -d "$target" ]]; then
@@ -80,7 +82,7 @@ else
   log "No $USER_FILE found; skipping user creation"
 fi
 
-log "User provisioning complete. Credentials stored at $OUT_CRED"
+log "✅ User provisioning complete. Credentials stored at $OUT_CRED"
 
 # ─────────────────────────────────────────────
 # Display created users

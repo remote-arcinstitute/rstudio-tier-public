@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────
-# File: 02_run/run_tier.sh
+# File: back-rpod-setup/runner/02_run/run_tier.sh
 # ─────────────────────────────────────────────
 set -euo pipefail
 
@@ -18,9 +18,8 @@ podman rm -f "$CONTAINER" 2>/dev/null || true
 podman run -d \
   --name "$CONTAINER" \
   -p "${PORT}:8787" \
-  -v "$ROOT/config:/app/config:ro" \
-  -v "$ROOT/back-rpod-setup/01_build/tier_limits.conf:/etc/rstudio/tier_limits.conf:ro" \
-  -v "$ROOT/back-rpod-setup/02_run:/var/lib/rstudio" \
+  -v "$ROOT/back-rpod-setup/runner/tier_limits.conf:/etc/rstudio/tier_limits.conf:ro" \
+  -v "$ROOT/back-rpod-setup/runner/02_run:/var/lib/rstudio" \
   -v "$MOCK_ROOT/shared-r-library:/usr/local/lib/R/site-library:ro" \
   -v "$MOCK_ROOT/Project Center:/mockdir/Project Center:ro" \
   -v "$MOCK_ROOT/user_home:/home:rw" \
