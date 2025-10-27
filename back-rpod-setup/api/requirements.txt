@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+requests
+requests-unixsocket
+python-dotenv
+pyyaml
+python-multipart

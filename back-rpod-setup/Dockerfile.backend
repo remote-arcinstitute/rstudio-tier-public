@@ -1,7 +1,0 @@
-# back-rpod-setup/Dockerfile.backend
-FROM python:3.11-slim
-WORKDIR /app
-COPY api /app/api
-RUN pip install fastapi uvicorn pyyaml
-EXPOSE 6124
-CMD ["uvicorn", "api.rpod_api:app", "--host", "0.0.0.0", "--port", "6124"]

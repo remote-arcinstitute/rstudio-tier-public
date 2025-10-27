@@ -1,26 +1,49 @@
-version: "3.8"
+version: '3.8'
+
 services:
   backend:
     build:
-      context: ./back-rpod-setup/api
-      dockerfile: Dockerfile
-    image: arc/rstudio-backend:latest
+      context: ./back-rpod-setup
+      dockerfile: Dockerfile.backend
     container_name: arc-backend
     ports:
       - "6124:6124"
+    environment:
+      - ROOT_PATH=/app
+      - MOCK_PATH=/home/arcinstitute/mockdir
+      - USERS_FILE=/app/config/users.yaml
+      - CONTAINER_ENGINE=podman
+      - HOST_IP=100.65.42.6
+      - IMAGE_NAME=rstudio-tier
     volumes:
-      - ./shared:/shared
-      - ./front-arc-login/config:/front-config
+      - ./config:/app/config:ro
+      - /home/arcinstitute/mockdir:/home/arcinstitute/mockdir:rw
+      # Mount podman socket - adjust path if needed
+      - /run/user/${UID}/podman/podman.sock:/run/podman/podman.sock:rw
+    restart: unless-stopped
+    networks:
+      - rpod-network
+    # Run as current user for podman access
+    user: "${UID}:${GID}"
 
   frontend:
     build:
       context: ./front-arc-login
       dockerfile: Dockerfile
-    image: arc/rstudio-login:latest
-    container_name: arc-login
+    container_name: arc-frontend
     ports:
       - "6123:6123"
     environment:
-      - BACKEND_URL=http://arc-backend:6124
+      - BACKEND_URL=http://backend:6124
+      - USERS_FILE=/app/config/users.yaml
+    volumes:
+      - ./config:/app/config:ro
     depends_on:
       - backend
+    restart: unless-stopped
+    networks:
+      - rpod-network
+
+networks:
+  rpod-network:
+    driver: bridge
