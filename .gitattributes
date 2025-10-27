@@ -1,0 +1,32 @@
+
+---
+
+## ⚙️ 2. `.gitattributes`
+
+Create at:
+`~/rstudio-tier-setup/.gitattributes`
+
+```gitattributes
+# Normalize text files to LF line endings for Linux systems
+* text=auto eol=lf
+
+# Treat scripts as text
+*.sh text
+*.py text
+*.R text
+
+# Preserve binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+
+# Documentation
+*.md text diff=markdown
+*.yaml text
+*.yml text
+
+# Ignore CRLF normalization for Docker layers
+*.tar binary
+*.img binary
+*.sif binary

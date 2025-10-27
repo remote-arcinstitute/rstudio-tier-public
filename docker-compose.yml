@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./back-rpod-setup/api
+      dockerfile: Dockerfile
+    image: arc/rstudio-backend:latest
+    container_name: arc-backend
+    ports:
+      - "6124:6124"
+    volumes:
+      - ./shared:/shared
+      - ./front-arc-login/config:/front-config
+
+  frontend:
+    build:
+      context: ./front-arc-login
+      dockerfile: Dockerfile
+    image: arc/rstudio-login:latest
+    container_name: arc-login
+    ports:
+      - "6123:6123"
+    environment:
+      - BACKEND_URL=http://arc-backend:6124
+    depends_on:
+      - backend

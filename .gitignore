@@ -1,0 +1,51 @@
+# ---- Python / FastAPI ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+
+# ---- Editor & OS junk ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.tmp
+*.bak
+*.log
+
+# ---- Runtime / Containers ----
+*.pid
+*.tar
+*.img
+*.sif
+*.sqlite3
+*.db
+*.sock
+
+# ---- Local runtime and mock data ----
+shared/mockdir/
+back-rpod-setup/02_run/
+front-arc-login/config/users.yaml
+back-rpod-setup/api/__pycache__/
+
+# ---- Sensitive credentials ----
+*.pem
+*.crt
+*.key
+*.token
+*.env
+secrets.yaml
+
+# ---- Build output ----
+*.out
+*.err
+dist/
+build/
