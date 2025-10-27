@@ -1,0 +1,5 @@
+# username,password,tier,groups,home,symlink
+aisha,pass123,tier-small,ARC1,/home/aisha,/OneDrive/ARC1.HealthSystemInstitute
+ben,benpw,tier-medium,ARC2,/home/ben,/OneDrive/ARC2.CVDInstitute
+sofia,sof789,tier-large,ARC3,/home/sofia,/OneDrive/ARC3.ChildHealthInstitute
+admin,rootpw,tier-admin,ARC1|ARC2|ARC3,/home/admin,/OneDrive
