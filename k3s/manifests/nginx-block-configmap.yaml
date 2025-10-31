@@ -19,29 +19,33 @@ data:
                 return 403 "Downloads are disabled";
             }
             
-            # Block file downloads
-            location ~* \.(zip|tar|gz|rar|7z|csv|xlsx|xls|rds|rda|RData)$ {
+            # Block file download paths
+            location ~* /files/.*\.(zip|tar|gz|rar|7z|csv|xlsx|xls|rds|rda|RData)$ {
                 return 403 "Downloads are disabled";
             }
             
-            # Block download query params
+            # Block download query parameters
             if ($args ~* "download=") {
                 return 403 "Downloads are disabled";
             }
             
-            # Proxy to RStudio on localhost
+            # Proxy to RStudio Server on localhost
             location / {
                 proxy_pass http://127.0.0.1:8787;
+                
+                # WebSocket support for RStudio console
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection "upgrade";
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 
-                # Limit response size
+                # Limit response size to prevent large downloads
                 proxy_max_temp_file_size 10m;
                 client_max_body_size 10m;
                 
+                # Hide content-disposition header to prevent browser downloads
                 proxy_hide_header Content-Disposition;
             }
         }
