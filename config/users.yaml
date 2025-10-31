@@ -2,20 +2,29 @@ users:
   julianbs:
     password: julianpw
     tier: tier2
-    groups: [ARC1, ARC2]
     home: /home/julianbs
-    symlink: /OneDrive/ARC2.CVDInstitute
+    projects:
+      - base: "ARC8. Global Surgery Institute"
+        folders:
+          - "8.1 Workforce"
+          - "8.2 Volume"
+          - "8.3 Timely Access"
 
   hanif:
     password: hanifpw
     tier: tier1
-    groups: [ARC1]
     home: /home/hanif
-    symlink: /OneDrive/ARC1.HealthSystemInstitute
+    projects:
+      - base: "ARC8. Global Surgery Institute"
+        folders:
+          - "8.1 Workforce"
+          - "8.3 Timely Access"
 
   nilakshi:
     password: nilakshipw
     tier: tier3
-    groups: [ARC3]
     home: /home/nilakshi
-    symlink: /OneDrive/ARC3.ChildHealthInstitute
+    projects:
+      - base: "ARC8. Global Surgery Institute"
+        folders:
+          - "8.2 Volume"

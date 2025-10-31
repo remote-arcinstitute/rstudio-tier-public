@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rpod-frontend
+  namespace: default
+  labels:
+    app: rpod-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rpod-frontend
+  template:
+    metadata:
+      labels:
+        app: rpod-frontend
+    spec:
+      nodeSelector:
+        workload: frontend  # Use label instead of hostname
+      containers:
+      - name: frontend
+        image: 100.64.0.5:30500/rpod-frontend:v3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: API_URL
+          value: "http://rpod-api:6124"  # Internal k8s DNS
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rpod-frontend
+  namespace: default
+  labels:
+    app: rpod-frontend
+spec:
+  type: NodePort
+  selector:
+    app: rpod-frontend
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30800
+    protocol: TCP
+    name: http

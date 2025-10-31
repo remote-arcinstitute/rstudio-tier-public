@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rpod-api
+  namespace: default
+  labels:
+    app: rpod-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rpod-api
+  template:
+    metadata:
+      labels:
+        app: rpod-api
+    spec:
+      serviceAccountName: rpod-api
+      nodeSelector:
+        workload: backend  # Use label instead of hostname
+      containers:
+      - name: api
+        image: 100.64.0.5:30500/rpod-api-k8s:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6124
+          name: http
+        env:
+        - name: K8S_NAMESPACE
+          value: "default"
+        - name: USERS_FILE
+          value: "/app/config/users.yaml"
+        - name: IMAGE_NAME
+          value: "100.64.0.5:30500/rstudio-tier:latest"
+        - name: NODE_IP
+          value: "100.64.0.7"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 6124
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 6124
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        hostPath:
+          path: /home/julianbs/rstudio-tier-setup/config
+          type: Directory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rpod-api
+  namespace: default
+  labels:
+    app: rpod-api
+spec:
+  type: ClusterIP
+  selector:
+    app: rpod-api
+  ports:
+  - port: 6124
+    targetPort: 6124
+    protocol: TCP
+    name: http

@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────
+# File: k3s/manifests/rbac.yaml
+# Purpose: RBAC permissions for rpod-api to manage RStudio pods
+# ─────────────────────────────────────────────
+
+---
+# ServiceAccount: Identity for the API pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rpod-api
+  namespace: default
+  labels:
+    app: rpod-api
+
+---
+# Role: Permissions the API needs
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rpod-api-role
+  namespace: default
+  labels:
+    app: rpod-api
+rules:
+  # Pod management (create, read, delete RStudio pods)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  
+  # Service management (create, read, delete NodePort services)
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  
+  # Pod logs (optional - for debugging)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  
+  # Pod status (to check if pods are running)
+  - apiGroups: [""]
+    resources: ["pods/status"]
+    verbs: ["get"]
+
+---
+# RoleBinding: Connect ServiceAccount to Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rpod-api-binding
+  namespace: default
+  labels:
+    app: rpod-api
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rpod-api-role
+subjects:
+  - kind: ServiceAccount
+    name: rpod-api
+    namespace: default

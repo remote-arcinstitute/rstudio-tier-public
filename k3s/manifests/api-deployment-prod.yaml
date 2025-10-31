@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rpod-api
+  namespace: default
+  labels:
+    app: rpod-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rpod-api
+  template:
+    metadata:
+      labels:
+        app: rpod-api
+    spec:
+      serviceAccountName: rpod-api
+      # PRODUCTION: Prefer pc-ika, fallback to researchpc
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pc-ika
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - researchpc
+      containers:
+      - name: api
+        image: localhost/rpod-api-k8s:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6124
+          name: http
+        env:
+        - name: K8S_NAMESPACE
+          value: "default"
+        - name: USERS_FILE
+          value: "/app/config/users.yaml"
+        - name: IMAGE_NAME
+          value: "localhost/rstudio-tier:latest"
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP  # Dynamically get node IP
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 6124
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 6124
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        hostPath:
+          path: /opt/rpod-config  # Use shared location for multi-node
+          type: Directory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rpod-api
+  namespace: default
+  labels:
+    app: rpod-api
+spec:
+  type: ClusterIP
+  selector:
+    app: rpod-api
+  ports:
+  - port: 6124
+    targetPort: 6124
+    protocol: TCP
+    name: http

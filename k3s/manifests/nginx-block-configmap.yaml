@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rstudio-nginx-block
+  namespace: default
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        server {
+            listen 8080;
+            server_name _;
+            
+            # Block the /export/ endpoint entirely
+            location ^~ /export/ {
+                return 403 "Downloads are disabled";
+            }
+            
+            # Block file downloads
+            location ~* \.(zip|tar|gz|rar|7z|csv|xlsx|xls|rds|rda|RData)$ {
+                return 403 "Downloads are disabled";
+            }
+            
+            # Block download query params
+            if ($args ~* "download=") {
+                return 403 "Downloads are disabled";
+            }
+            
+            # Proxy to RStudio on localhost
+            location / {
+                proxy_pass http://127.0.0.1:8787;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                
+                # Limit response size
+                proxy_max_temp_file_size 10m;
+                client_max_body_size 10m;
+                
+                proxy_hide_header Content-Disposition;
+            }
+        }
+    }

@@ -1,0 +1,29 @@
+FROM docker.io/rocker/rstudio:latest
+LABEL maintainer="arcinstitute <ops@arcinstitute.org>"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CENTRAL_LIB=/usr/local/lib/R/site-library
+ENV STATE_DIR=/var/lib/rstudio
+
+# ── Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tini jq libpq-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
+    libgit2-dev make g++ pkg-config ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Create directories
+RUN mkdir -p /etc/rstudio "$STATE_DIR" && \
+    chmod 777 "$STATE_DIR"
+
+# ── Configure RStudio Server (NO TIMEOUTS)
+RUN echo "www-address=0.0.0.0" > /etc/rstudio/rserver.conf && \
+    echo "session-timeout-minutes=0" > /etc/rstudio/rsession.conf && \
+    echo "session-timeout-suspend=0" >> /etc/rstudio/rsession.conf
+
+# ── Init script for k3s deployment
+COPY k3s/init-rstudio.sh /usr/local/bin/init-rstudio.sh
+RUN chmod +x /usr/local/bin/init-rstudio.sh
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+EXPOSE 8787
+CMD ["/usr/local/bin/init-rstudio.sh"]
